@@ -1,27 +1,21 @@
-import { Axios } from "./core/Axios";
-import defaults from "./core/defaults";
-import { mergeConfig } from "./core/mergeConfig";
-import { extend } from "./helpers/utils";
-import { AxiosInstance, AxiosRequestConfig } from "./types";
+import { extend } from "@/helpers/utils.ts";
+import Axios from "@/core/Axios.ts";
+import { AxiosInstance, AxiosRequestConfig } from "@/types";
+import { defaults } from "@/defaults";
+import { mergeConfig } from "@/core/mergeConfig.ts";
 
-
-function createInstance(config: AxiosRequestConfig): AxiosInstance {
-    const context = new Axios(config)
-    // 将 request 方法的 this 指向绑定到 context
-    const instance = Axios.prototype.request.bind(context) as AxiosInstance
-    // 将 context 中的属性和方法拷贝到 instance 上
-    extend(instance, context)
-    // 将 Axios.prototype 上的方法拷贝到 instance 上，并绑定 this 指向到 context
-    extend(instance, Axios.prototype, context)
-
-    // 添加 create 方法用于创建新的实例
-    instance.create = function create(config: AxiosRequestConfig): AxiosInstance {
-        return createInstance(mergeConfig(defaults, config))
-    }
-
-    return instance
+function createInstance(defaultConfig: AxiosRequestConfig): AxiosInstance {
+  const context = new Axios(defaultConfig);
+  const instance = Axios.prototype.request.bind(context);
+  extend(instance, Axios.prototype, context);
+  extend(instance, context, null);
+  return instance as AxiosInstance;
 }
 
-const axios = createInstance(defaults)
+const axios = createInstance(defaults);
 
+axios.create = (config: AxiosRequestConfig) => {
+  return createInstance(mergeConfig(defaults, config))
+}
+console.log(axios)
 export default axios

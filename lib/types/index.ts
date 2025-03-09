@@ -1,31 +1,38 @@
-export type Method = 
-'get' | 'GET' | 
-'post' | 'POST' | 
-'put' | 'PUT' | 
-'delete' | 'DELETE' | 
-'head' | 'HEAD' | 
-'options' | 'OPTIONS' | 
-'patch' | 'PATCH'
+import Axios from "@/core/Axios.ts";
+
+export type Method =
+  'get' | 'GET' |
+  'post' | 'POST' |
+  'put' | 'PUT' |
+  'delete' | 'DELETE' |
+  'options' | 'OPTIONS' |
+  'head' | 'HEAD'
 
 export interface AxiosRequestConfig {
-  url: string
+  baseURL?: string
+  url?: string
   method?: Method
-  data?: any
+  data?: unknown
+  headers?: Record<string, unknown>
+  timeout?: number
+  adapter?: 'http' | 'fetch' | 'xhr'
+  [key: string]: any
 }
+
+export interface AxiosHeaders extends Record<string, unknown> {}
 
 export interface AxiosResponse<T = any> {
   data: T
   status: number
   statusText: string
+  config: AxiosRequestConfig
+  headers: AxiosHeaders
 }
 
 export interface AxiosPromise<T = any> extends Promise<AxiosResponse<T>> {}
 
-export interface Axios {
-  request(configOrUrl: AxiosRequestConfig | string, config?: AxiosRequestConfig): AxiosPromise
-}
-
 export interface AxiosInstance extends Axios {
-  (config: AxiosRequestConfig): AxiosPromise
-  create(config: AxiosRequestConfig): AxiosInstance
+  create: (config: AxiosRequestConfig) => AxiosInstance;
+  <T = any>(configOrUrl: AxiosRequestConfig | string, config?: AxiosRequestConfig): AxiosPromise<T>
+  <T = any>(config: AxiosRequestConfig): AxiosPromise<T>
 }
