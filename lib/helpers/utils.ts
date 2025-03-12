@@ -28,3 +28,54 @@ export const isPlainObject = (val: unknown) => {
     && !(Symbol.toStringTag in (val as Object))
     && !(Symbol.iterator in (val as Object))
 }
+
+export function forEach(
+  obj: any,
+  fn: (key: string | number, val: unknown) => any,
+  config?: {
+    allOwnKeys: boolean
+  }
+) {
+  if (isUndefined(obj) || obj === null) return
+  if (typeof obj !== 'object') {
+    obj = [obj]
+  }
+
+  if (Array.isArray(obj)) {
+    obj.forEach((item, index) => {
+      fn.call(null, index, item)
+    })
+  }
+  else {
+    const keys = config?.allOwnKeys ? Object.getOwnPropertyNames(obj) : Object.keys(obj)
+    for (const key of keys) {
+      fn.call(obj, key, obj[key])
+    }
+  }
+}
+
+export function merge(...args: unknown[]) {
+  const result = {}
+
+  const assignValue = (key: string | number, value: unknown) => {
+    if (isPlainObject(result[key]) && isPlainObject(value)) {
+      result[key] = merge(result[key], value)
+      return
+    }
+    if (isPlainObject(value)) {
+      result[key] = merge({}, value)
+      return
+    }
+    if (Array.isArray(value)) {
+      result[key] = [...value]
+      return
+    }
+    result[key] = value
+  }
+
+  for (const arg in args) {
+    forEach(arg, assignValue)
+  }
+
+  return result
+}

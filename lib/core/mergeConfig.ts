@@ -1,18 +1,33 @@
 import { AxiosRequestConfig } from "@/types";
-import { isUndefined } from "@/helpers/utils.ts";
+import { isPlainObject, isUndefined, merge } from "@/helpers/utils.ts";
 
 interface MergeFunction<T = any, U = any> {
   (config1: T, config2: U): T & U
 }
 
 const getMergedValue: MergeFunction = <T = any, U = any>(config1 : T, config2 : U) => {
-  return {
-    ...config1,
-    ...config2
+  if (isPlainObject(config1) && isUndefined(config2)) {
+    return merge(config1, config2)
+  }
+  if (isPlainObject(config2)) {
+    return merge({}, config2)
+  }
+  if (Array.isArray(config2)) {
+    return [...config2]
+  }
+  return config2
+}
+
+const mergeDeepProperties = <T = any, U = any>(config1 : T, config2 : U) => {
+  if (!isUndefined(config2)) {
+    return merge(config1, config2)
+  }
+  if (!isUndefined(config1)) {
+    return merge(undefined, config1)
   }
 }
 
-const valueFromConfig2: MergeFunction = <T = any, U = any>(config1: T, config2: U) => {
+const valueFromConfig2: MergeFunction = <T = any, U = any>(_config1: T, config2: U) => {
   if (!isUndefined(config2)) {
     return getMergedValue(undefined, config2)
   }
@@ -36,6 +51,7 @@ export function mergeConfig(config1: AxiosRequestConfig, config2: AxiosRequestCo
     data: valueFromConfig2,
     baseURL: defaultToConfig2,
     timeout: defaultToConfig2,
+    headers: mergeDeepProperties,
   }
 
   for (let key in Object.keys(Object.assign({}, config1, config2))) {
