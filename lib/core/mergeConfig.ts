@@ -22,10 +22,10 @@ function mergeFromConfig2(_config1: AxiosRequestConfig, config2: AxiosRequestCon
 
 function defaultToConfig2(config1: AxiosRequestConfig, config2: AxiosRequestConfig) {
   if (!isUndefined(config2)) {
-    return merge(undefined, config2)
+    return getMergedValue(undefined, config2)
   }
   if (!isUndefined(config1)) {
-    return merge(undefined, config1)
+    return getMergedValue(undefined, config1)
   }
 }
 
@@ -37,14 +37,14 @@ const configMap: Record<string, Function> = {
   url: mergeFromConfig2,
   method: mergeFromConfig2,
   data: mergeFromConfig2,
-  headers: defaultToConfig2
+  headers: defaultToConfig2,
+  adapter: defaultToConfig2,
 }
 
 
 export function mergeConfig(config1: AxiosRequestConfig, config2: AxiosRequestConfig) {
   const result: Record<string, any> = {}
   const keys = [...Object.keys(config1), ...Object.keys(config2)]
-  console.log(config1, config2)
   for (const key of keys) {
     const mergeFn = configMap[key] || deepMerge
     if (mergeFn) {

@@ -2,7 +2,8 @@ import { AxiosRequestConfig } from "@/types";
 
 const defaults: AxiosRequestConfig = {
   method: 'get',
-  url: ''
+  url: '',
+  adapter: 'xhr'
 }
 
 export default defaults
