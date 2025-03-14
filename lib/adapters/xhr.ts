@@ -1,7 +1,20 @@
-import { AxiosPromise, AxiosRequestConfig } from "@/types";
+import { type AxiosPromise, type AxiosRequestConfig } from "../types";
 
-export default function xhr(config: AxiosRequestConfig): AxiosPromise {
+export function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise((resolve, reject) => {
-    resolve(config)
+    resolve({
+      data: null,
+      status: 200,
+      statusText: "OK",
+      config: config,
+      headers: {}
+    })
+    reject({
+      data: null,
+      status: 200,
+      statusText: "OK",
+      config: config,
+      headers: {}
+    })
   })
 }

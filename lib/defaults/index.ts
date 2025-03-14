@@ -1,5 +1,8 @@
-import { AxiosRequestConfig } from "@/types";
+import { type AxiosRequestConfig } from "../types";
 
-export const defaults: AxiosRequestConfig = {
+const defaults: AxiosRequestConfig = {
   method: 'get',
+  adapter: 'xhr'
 }
+
+export default defaults

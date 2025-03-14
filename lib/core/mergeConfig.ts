@@ -1,63 +1,55 @@
-import { AxiosRequestConfig } from "@/types";
-import { isPlainObject, isUndefined, merge } from "@/helpers/utils.ts";
+import { type AxiosRequestConfig } from "../types";
+import { isPlainObject, isUndefined, merge } from "../utils";
 
-interface MergeFunction<T = any, U = any> {
-  (config1: T, config2: U): T & U
+function getMergedValue(target: unknown, source: unknown) {
+  if (isPlainObject(target) && isUndefined(source)) {
+    return merge(target, source);
+  }
+  if (isPlainObject(source)) {
+    return merge({}, source)
+  }
+  if (Array.isArray(source)) {
+    return [...source]
+  }
+  return source
 }
 
-const getMergedValue: MergeFunction = <T = any, U = any>(config1 : T, config2 : U) => {
-  if (isPlainObject(config1) && isUndefined(config2)) {
-    return merge(config1, config2)
-  }
-  if (isPlainObject(config2)) {
-    return merge({}, config2)
-  }
-  if (Array.isArray(config2)) {
-    return [...config2]
-  }
-  return config2
-}
-
-const mergeDeepProperties = <T = any, U = any>(config1 : T, config2 : U) => {
+function mergeFromConfig2(_config1: AxiosRequestConfig, config2: AxiosRequestConfig) {
   if (!isUndefined(config2)) {
-    return merge(config1, config2)
+    return getMergedValue(undefined, config2)
+  }
+}
+
+function defaultToConfig2(config1: AxiosRequestConfig, config2: AxiosRequestConfig) {
+  if (!isUndefined(config2)) {
+    return merge(undefined, config2)
   }
   if (!isUndefined(config1)) {
     return merge(undefined, config1)
   }
 }
 
-const valueFromConfig2: MergeFunction = <T = any, U = any>(_config1: T, config2: U) => {
-  if (!isUndefined(config2)) {
-    return getMergedValue(undefined, config2)
-  }
+function deepMerge() {
+
 }
 
-const defaultToConfig2: MergeFunction = <T = any, U = any>(config1: T, config2: U) => {
-  if (!isUndefined(config2)) {
-    return getMergedValue(undefined, config2)
-  }
-  if (!isUndefined(config1)) {
-    return getMergedValue(undefined, config1)
-  }
+const configMap: Record<string, Function> = {
+  url: mergeFromConfig2,
+  method: mergeFromConfig2,
+  data: mergeFromConfig2,
+  headers: defaultToConfig2
 }
 
-export function mergeConfig(config1: AxiosRequestConfig, config2: AxiosRequestConfig = {}): AxiosRequestConfig {
-  const config = {}
 
-  const mergeMap: Record<keyof AxiosRequestConfig, MergeFunction> = {
-    url: valueFromConfig2,
-    method: valueFromConfig2,
-    data: valueFromConfig2,
-    baseURL: defaultToConfig2,
-    timeout: defaultToConfig2,
-    headers: mergeDeepProperties,
+export function mergeConfig(config1: AxiosRequestConfig, config2: AxiosRequestConfig) {
+  const result: Record<string, any> = {}
+  const keys = [...Object.keys(config1), ...Object.keys(config2)]
+  console.log(config1, config2)
+  for (const key of keys) {
+    const mergeFn = configMap[key] || deepMerge
+    if (mergeFn) {
+      result[key] = mergeFn(config1[key], config2[key])
+    }
   }
-
-  for (let key in Object.keys(Object.assign({}, config1, config2))) {
-    const mergedValue = mergeMap[key](config1[key], config2[key])
-    mergedValue || (config[key] = mergedValue)
-  }
-
-  return config
+  return result
 }

@@ -1,72 +1,81 @@
-import { AxiosRequestConfig, Method } from "@/types";
-import xhr from "@/adapters/xhr.ts";
-import { mergeConfig } from "@/core/mergeConfig.ts";
-import { defaults } from "@/defaults";
-import { buildFullPath } from "@/helpers/url.ts";
+import { xhr } from "../adapters/xhr";
+import { type AxiosRequestConfig, type Method, type Axios as IAxios } from "../types";
+import { mergeConfig } from "./mergeConfig";
+import { InterceptorManager } from "./InterceptorManager.ts";
 
-export default class Axios {
-  public defaults: any
-  constructor(defaultConfig: AxiosRequestConfig) {
-    this.defaults = defaultConfig
+class Axios implements IAxios {
+  public interceptors: Record<string, InterceptorManager>
+  constructor(
+    public defaults: AxiosRequestConfig
+  ) {
     this.addMethodNoData()
     this.addMethodWithData()
-  }
-
-  public request(configOrUrl: AxiosRequestConfig | string, config: AxiosRequestConfig = {url: ''}) {
-    try {
-      return this._request(configOrUrl, config);
-    } catch (e) {
-
+    this.interceptors = {
+      request: new InterceptorManager(),
+      response: new InterceptorManager(),
     }
   }
 
-  private _request(configOrUrl: AxiosRequestConfig | string, config: AxiosRequestConfig) {
+  public request(configOrUrl: string | AxiosRequestConfig, config: AxiosRequestConfig = { url: '' }) {
+    try {
+      return this._request(configOrUrl, config)
+    } catch (error) {
+      // todo 错误处理
+      throw new Error('Axios request failed: ' + error)
+    }
+  }
+
+  private _request(configOrUrl: string | AxiosRequestConfig, config: AxiosRequestConfig) {
+    config = config || {}
     if (typeof configOrUrl === 'string') {
       config.url = configOrUrl
     } else {
       config = configOrUrl
     }
 
-    config = mergeConfig(defaults, config);
+    config = mergeConfig(this.defaults, config)
+    config.method = config.method!.toLowerCase() as Method
+
 
     return xhr(config)
   }
 
-  public getUri(config: AxiosRequestConfig) {
-    config = mergeConfig(defaults, config);
-    const { url, baseURL } = config;
-    const path = buildFullPath(baseURL, url!);
-    return path;
-  }
-
   private addMethodNoData() {
-    const methods = ['get', 'options', 'head', 'delete'] as Method[];
-    methods.forEach((method) => {
-      Axios.prototype[method] = (url: string, config?: AxiosRequestConfig) => this.request(mergeConfig(config || {}, {
-        url,
-        method,
-      }))
-    })
+    const methods = ['get', 'delete', 'head', 'options'] as Method[]
+
+    const addMethod = (method: Method) => {
+      (Axios.prototype as Record<string, any>)[method] = (url: string, config: AxiosRequestConfig) => {
+        return this.request(mergeConfig(config || {}, {
+          method,
+          url
+        }))
+      }
+    }
+
+    methods.forEach(addMethod)
   }
 
   private addMethodWithData() {
-    const methods = ['get', 'options', 'head', 'delete'] as Method[];
-    methods.forEach((method) => {
-      const generateHTTPMethod = (isForm: boolean = false) => {
-        return (url: string, data?: any, config?: AxiosRequestConfig) => {
+    const methods = ['post', 'put', 'patch'] as Method[]
+
+    methods.forEach(method => {
+      const addMethod = (isForm: boolean) => {
+        return (url: string, data: any, config?: AxiosRequestConfig) => {
           return this.request(mergeConfig(config || {}, {
-            url,
             method,
+            url,
+            data,
             headers: isForm ? {
-              'Content-Type': 'application/json',
+              'Content-Type': 'application/x-www-form-urlencoded'
             } : {},
-            data: data || {}
           }))
         }
       }
-
-      Axios.prototype[method] = generateHTTPMethod(false)
-      Axios.prototype[method+'Form'] = generateHTTPMethod(true)
+      ;(Axios.prototype as Record<string, any>)[method] = addMethod(false)
+      ;(Axios.prototype as Record<string, any>)[method+'Form'] = addMethod(true)
     })
   }
 }
+
+
+export default Axios
