@@ -1,10 +1,11 @@
-import { xhr } from "../adapters/xhr";
-import { type AxiosRequestConfig, type Method, type Axios as IAxios } from "../types";
+import { type Axios as IAxios, type AxiosRequestConfig, type Method } from "../types";
 import { mergeConfig } from "./mergeConfig";
 import { InterceptorManager } from "./InterceptorManager.ts";
+import dispatchRequest from "@/core/dispatchRequest.ts";
 
 class Axios implements IAxios {
   public interceptors: Record<string, InterceptorManager>
+
   constructor(
     public defaults: AxiosRequestConfig
   ) {
@@ -16,7 +17,7 @@ class Axios implements IAxios {
     }
   }
 
-  public request(configOrUrl: string | AxiosRequestConfig, config: AxiosRequestConfig = { url: '' }) {
+  public request(configOrUrl: string | AxiosRequestConfig, config: AxiosRequestConfig = {url: ''}) {
     try {
       return this._request(configOrUrl, config)
     } catch (error) {
@@ -37,7 +38,7 @@ class Axios implements IAxios {
     config.method = config.method!.toLowerCase() as Method
 
 
-    return xhr(config)
+    return dispatchRequest(config)
   }
 
   private addMethodNoData() {
@@ -60,19 +61,19 @@ class Axios implements IAxios {
 
     methods.forEach(method => {
       const addMethod = (isForm: boolean) => {
-        return (url: string, data: any, config?: AxiosRequestConfig) => {
-          return this.request(mergeConfig(config || {}, {
-            method,
-            url,
-            data,
-            headers: isForm ? {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            } : {},
-          }))
+          return (url: string, data: any, config?: AxiosRequestConfig) => {
+            return this.request(mergeConfig(config || {}, {
+              method,
+              url,
+              data,
+              headers: isForm ? {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              } : {},
+            }))
+          }
         }
-      }
       ;(Axios.prototype as Record<string, any>)[method] = addMethod(false)
-      ;(Axios.prototype as Record<string, any>)[method+'Form'] = addMethod(true)
+      ;(Axios.prototype as Record<string, any>)[method + 'Form'] = addMethod(true)
     })
   }
 }

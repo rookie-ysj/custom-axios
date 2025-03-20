@@ -1,20 +1,11 @@
-export function extend<T, U>(target: T, from: U, context: any = null): T & U {
-  for (const key in from) {
-    if (context && typeof from[key] === 'function') {
-      (target as T & U)[key] = from[key].bind(context)
-    } else {
-      (target as T & U)[key] = from[key] as any
-    }
-  }
-  return target as T & U
-}
-
 export interface isSomeType<T> {
   (value: unknown): value is T
 }
 
 export const isUndefined: isSomeType<undefined> = (val: unknown) => typeof val === 'undefined'
-
+export const isString: isSomeType<string> = (val: unknown) => typeof val === 'string'
+export const isArray: isSomeType<Array<any>> = (val: unknown) => Array.isArray(val)
+export const isFunction: isSomeType<Function> = (val: unknown) => typeof val === 'function'
 
 export const kindOf = ((cache) => (thing: unknown): string => {
   const str = toString.call(thing)
@@ -45,8 +36,7 @@ export function forEach(
     obj.forEach((item, index) => {
       fn.call(null, index, item)
     })
-  }
-  else {
+  } else {
     const keys = config?.allOwnKeys ? Object.getOwnPropertyNames(obj) : Object.keys(obj)
     for (const key of keys) {
       fn.call(obj, key, obj[key])
@@ -78,4 +68,20 @@ export function merge(...args: unknown[]) {
   }
 
   return result
+}
+
+export function bind<T extends Function>(fn: T, context: any): T {
+  return fn.bind(context)
+}
+
+export function extend<T = any, U = any>(target: T, source: U, context: any = null): T & U {
+  for (const key in source) {
+    if (context && isFunction(source[key])) {
+      (target as T & U)[key] = bind(source[key], context) as any
+    } else {
+      (target as T & U)[key] = source[key] as any
+    }
+  }
+
+  return target as T & U
 }

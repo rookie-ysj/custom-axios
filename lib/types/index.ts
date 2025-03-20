@@ -1,15 +1,17 @@
 export type Method =
-'get' | 'GET'
-| 'post' | 'POST'
-| 'put' | 'PUT'
-| 'delete' | 'DELETE'
-| 'head' | 'HEAD'
-| 'options' | 'OPTIONS'
-| 'patch' | 'PATCH'
+  'get' | 'GET'
+  | 'post' | 'POST'
+  | 'put' | 'PUT'
+  | 'delete' | 'DELETE'
+  | 'head' | 'HEAD'
+  | 'options' | 'OPTIONS'
+  | 'patch' | 'PATCH'
 
 export interface AxiosHeaders {
   [key: string]: any
 }
+
+export type PromiseFunc<T = any> = (...args: any[]) => AxiosPromise<T>
 
 export interface AxiosRequestConfig {
   url?: string;
@@ -36,13 +38,11 @@ export interface Axios {
 }
 
 export interface AxiosClass {
-  new (config: AxiosRequestConfig): Axios
+  new(config: AxiosRequestConfig): Axios
 }
 
 export interface AxiosInstance {
   Axios: AxiosClass;
-  <T = any>(config: AxiosRequestConfig): AxiosPromise<T>;
-  create(config: AxiosRequestConfig): AxiosInstance;
   get: <T = any>(url: string, config?: AxiosRequestConfig) => AxiosPromise<T>;
   GET: <T = any>(url: string, config?: AxiosRequestConfig) => AxiosPromise<T>;
   post: <T = any>(url: string, config?: AxiosRequestConfig) => AxiosPromise<T>;
@@ -57,4 +57,30 @@ export interface AxiosInstance {
   OPTIONS: <T = any>(url: string, config?: AxiosRequestConfig) => AxiosPromise<T>;
   patch: <T = any>(url: string, config?: AxiosRequestConfig) => AxiosPromise<T>;
   PATCH: <T = any>(url: string, config?: AxiosRequestConfig) => AxiosPromise<T>;
+  <T = any>(config: AxiosRequestConfig): AxiosPromise<T>;
+  create(config: AxiosRequestConfig): AxiosInstance;
+}
+
+export type AxiosErrorCode =
+  | 'ERR_BAD_OPTION_VALUE'
+  | 'ERR_BAD_OPTION'
+  | 'ECONNABORTED'
+  | 'ETIMEDOUT'
+  | 'ERR_NETWORK'
+  | 'ERR_FR_TOO_MANY_REDIRECTS'
+  | 'ERR_DEPRECATED'
+  | 'ERR_BAD_RESPONSE'
+  | 'ERR_BAD_REQUEST'
+  | 'ERR_CANCELED'
+  | 'ERR_NOT_SUPPORT'
+  | 'ERR_INVALID_URL'
+
+export interface AxiosError {
+  isAxiosError: boolean
+  name: string
+  code?: AxiosErrorCode
+  message: string
+  config?: AxiosRequestConfig
+  response?: any
+  request?: any
 }

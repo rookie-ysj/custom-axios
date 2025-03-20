@@ -2,7 +2,7 @@ import defaults from "./defaults";
 import { type AxiosInstance, type AxiosRequestConfig } from "./types";
 import Axios from './core/Axios'
 import { mergeConfig } from "./core/mergeConfig";
-import { extend } from "./utils";
+import { extend } from "./helpers/utils";
 
 
 function createInstance(defaults: AxiosRequestConfig): AxiosInstance {

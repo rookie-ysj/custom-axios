@@ -1,5 +1,5 @@
 import { type AxiosRequestConfig } from "../types";
-import { isPlainObject, isUndefined, merge } from "../utils";
+import { isPlainObject, isUndefined, merge } from "../helpers/utils";
 
 function getMergedValue(target: unknown, source: unknown) {
   if (isPlainObject(target) && isUndefined(source)) {
