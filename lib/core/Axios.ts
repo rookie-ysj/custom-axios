@@ -1,7 +1,7 @@
 import { type Axios as IAxios, type AxiosRequestConfig, type Method } from "../types";
 import { mergeConfig } from "./mergeConfig";
 import { InterceptorManager } from "./InterceptorManager.ts";
-import dispatchRequest from "@/core/dispatchRequest.ts";
+import dispatchRequest from "./dispatchRequest.ts";
 
 class Axios implements IAxios {
   public interceptors: Record<string, InterceptorManager>
@@ -35,9 +35,7 @@ class Axios implements IAxios {
     }
 
     config = mergeConfig(this.defaults, config)
-    config.method = config.method!.toLowerCase() as Method
-
-
+    
     return dispatchRequest(config)
   }
 

@@ -10,7 +10,7 @@ function createInstance(defaults: AxiosRequestConfig): AxiosInstance {
   const instance = Axios.prototype.request.bind(context)
 
   extend(instance, Axios.prototype, context)
-  // extend(instance, context, null)
+  extend(instance, context, null)
 
   return instance as AxiosInstance
 }

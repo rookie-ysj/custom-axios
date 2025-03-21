@@ -1,6 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from "@/types";
 import adapters from '../adapters/adapters.ts'
-import defaults from "@/core/defaults.ts";
+import defaults from "../defaults";
 
 // function throwIfCancellationRequested(config) {
 //   if (config.cancelToken) {
@@ -9,11 +9,11 @@ import defaults from "@/core/defaults.ts";
 // }
 
 export default function dispatchRequest(config: AxiosRequestConfig) {
-  const adapter = adapters.getAdapter(config.adapter || defaults.adapter)
+  const adapter = adapters.getAdapter(config.adapter || defaults.adapter!)
 
   return adapter(config).then(
     function onAdapterResolution(response: AxiosResponse) {
-
+      console.log(response)
       return response
     },
     function onAdapterRejection(reason: AxiosResponse) {

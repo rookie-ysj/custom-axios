@@ -12,13 +12,14 @@ export interface AxiosHeaders {
 }
 
 export type PromiseFunc<T = any> = (...args: any[]) => AxiosPromise<T>
+export type Adapter = 'xhr' | 'fetch' | 'http' | Function
 
 export interface AxiosRequestConfig {
   url?: string;
   method?: Method;
   data?: any
   headers?: AxiosHeaders
-  adapter?: 'xhr' | 'fetch' | 'http' | Function
+  adapter?: Adapter | Adapter[]
 
   [k: string]: any
 }

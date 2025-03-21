@@ -2,7 +2,7 @@ import { type AxiosRequestConfig } from "../types";
 
 const defaults: AxiosRequestConfig = {
   method: 'get',
-  adapter: 'xhr'
+  adapter: ['xhr', 'http', 'fetch'],
 }
 
 export default defaults

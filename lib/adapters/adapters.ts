@@ -1,10 +1,8 @@
 import xhr from "@/adapters/xhr.ts";
-import { AxiosRequestConfig, PromiseFunc } from "@/types";
+import { Adapter, PromiseFunc } from "@/types";
 import fetch from "./fetch";
 import { isArray, isFunction, isString } from "@/helpers/utils.ts";
 import AxiosError from "@/core/AxiosError.ts";
-
-type Adapter = AxiosRequestConfig['adapter']
 
 const knownAdapters: Record<string, PromiseFunc | boolean> = {
   xhr: xhr,
@@ -24,7 +22,8 @@ export default {
     for (let i = 0; i < length; i++) {
       nameOrAdapter = adapters[i]
       let id
-      adapter = isString(nameOrAdapter) ? adapters[(id = String(nameOrAdapter).toLowerCase())] : nameOrAdapter
+
+      adapter = isString(nameOrAdapter) ? knownAdapters[(id = String(nameOrAdapter).toLowerCase())] : nameOrAdapter
 
       if (adapter === undefined) {
         throw new AxiosError(`Unknown adapter ${id}"`)
