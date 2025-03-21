@@ -23,6 +23,8 @@ export interface AxiosRequestConfig {
   data?: any
   headers?: AxiosHeaders
   adapter?: Adapter | Adapter[]
+  timeout?: number
+  validateStatus?: (status: number) => boolean
 
   [k: string]: any
 }
