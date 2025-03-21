@@ -22,7 +22,7 @@ export const isPlainObject = (val: unknown) => {
 
 export function forEach(
   obj: any,
-  fn: (key: string | number, val: unknown) => any,
+  fn: (val: unknown, key: string | number) => any,
   config?: {
     allOwnKeys: boolean
   }
@@ -47,7 +47,7 @@ export function forEach(
 export function merge(...args: unknown[]) {
   const result = {}
 
-  const assignValue = (key: string | number, value: unknown) => {
+  const assignValue = (value: unknown, key: string | number) => {
     if (isPlainObject(result[key]) && isPlainObject(value)) {
       result[key] = merge(result[key], value)
       return

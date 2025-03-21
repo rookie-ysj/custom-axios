@@ -13,7 +13,6 @@ export default function dispatchRequest(config: AxiosRequestConfig) {
 
   return adapter(config).then(
     function onAdapterResolution(response: AxiosResponse) {
-      console.log(response)
       return response
     },
     function onAdapterRejection(reason: AxiosResponse) {

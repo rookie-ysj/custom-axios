@@ -11,6 +11,9 @@ export interface AxiosHeaders {
   [key: string]: any
 }
 
+export type ResolveFunc<T = any> = (value: T) => any
+export type RejectFunc = (reason?: any) => any
+
 export type PromiseFunc<T = any> = (...args: any[]) => AxiosPromise<T>
 export type Adapter = 'xhr' | 'fetch' | 'http' | Function
 
@@ -34,15 +37,39 @@ export interface AxiosResponse<T = any> {
 
 export type AxiosPromise<T = any> = Promise<AxiosResponse<T>>
 
+export interface InterceptorHandler<T = any> {
+  fulfilled: ResolveFunc<T>
+  rejected?: RejectFunc
+  synchronous?: boolean
+}
+
+export interface InterceptorUseOptions {
+  synchronous?: boolean
+}
+
+export interface InterceptorManager<T = any> {
+  handlers: Array<InterceptorHandler<T> | null>
+  use: (fulfilled: ResolveFunc, rejected?: RejectFunc, options?: InterceptorUseOptions) => number
+  eject: (id: number) => void
+  clear: () => void
+  forEach: (fn: (func: InterceptorHandler) => any) => void
+}
+
+export interface Interceptors {
+  request: InterceptorManager<AxiosRequestConfig>
+  response: InterceptorManager<AxiosResponse>
+}
+
 export interface Axios {
-  request<T = any>(config: AxiosRequestConfig): AxiosPromise<T>;
+  interceptors: Interceptors
+  request<T = any>(configOrUrl: string | AxiosRequestConfig, config: AxiosRequestConfig): AxiosPromise<T>;
 }
 
 export interface AxiosClass {
   new(config: AxiosRequestConfig): Axios
 }
 
-export interface AxiosInstance {
+export interface AxiosInstance extends Axios {
   Axios: AxiosClass;
   get: <T = any>(url: string, config?: AxiosRequestConfig) => AxiosPromise<T>;
   GET: <T = any>(url: string, config?: AxiosRequestConfig) => AxiosPromise<T>;

@@ -1,10 +1,18 @@
-import { type Axios as IAxios, type AxiosRequestConfig, type Method } from "../types";
+import {
+  type Axios as IAxios,
+  AxiosPromise,
+  type AxiosRequestConfig,
+  AxiosResponse,
+  InterceptorHandler,
+  Interceptors,
+  type Method
+} from "../types";
 import { mergeConfig } from "./mergeConfig";
-import { InterceptorManager } from "./InterceptorManager.ts";
-import dispatchRequest from "./dispatchRequest.ts";
+import InterceptorManager from "./InterceptorManager.ts";
+import dispatchRequest from "@/core/dispatchRequest.ts";
 
-class Axios implements IAxios {
-  public interceptors: Record<string, InterceptorManager>
+export default class Axios implements IAxios {
+  public interceptors: Interceptors
 
   constructor(
     public defaults: AxiosRequestConfig
@@ -12,8 +20,8 @@ class Axios implements IAxios {
     this.addMethodNoData()
     this.addMethodWithData()
     this.interceptors = {
-      request: new InterceptorManager(),
-      response: new InterceptorManager(),
+      request: new InterceptorManager<AxiosRequestConfig>(),
+      response: new InterceptorManager<AxiosResponse>(),
     }
   }
 
@@ -26,7 +34,7 @@ class Axios implements IAxios {
     }
   }
 
-  private _request(configOrUrl: string | AxiosRequestConfig, config: AxiosRequestConfig) {
+  private _request(configOrUrl: string | AxiosRequestConfig, config: AxiosRequestConfig): AxiosPromise {
     config = config || {}
     if (typeof configOrUrl === 'string') {
       config.url = configOrUrl
@@ -35,8 +43,43 @@ class Axios implements IAxios {
     }
 
     config = mergeConfig(this.defaults, config)
-    
-    return dispatchRequest(config)
+
+    // let synchronousRequestInterceptors = false
+
+    const chain: InterceptorHandler<any>[] = [{
+      fulfilled: dispatchRequest.bind(this),
+      rejected: undefined
+    }]
+
+    this.interceptors.request.forEach(interceptor => {
+      chain.unshift({
+        fulfilled: interceptor.fulfilled,
+        rejected: interceptor.rejected
+      })
+    })
+    this.interceptors.response.forEach(interceptor => {
+      chain.push({
+        fulfilled: interceptor.fulfilled,
+        rejected: interceptor.rejected
+      })
+    })
+
+    let i = 0
+    let promise: AxiosPromise<AxiosRequestConfig>
+    let len = 0
+
+    // if (!synchronousRequestInterceptors) {
+    len = chain.length
+    promise = Promise.resolve(config) as AxiosPromise<AxiosRequestConfig>
+
+    while (i < len) {
+      promise = promise.then(chain[i].fulfilled, chain[i].rejected)
+      i++
+    }
+
+    return promise
+    // }
+
   }
 
   private addMethodNoData() {
@@ -76,5 +119,3 @@ class Axios implements IAxios {
   }
 }
 
-
-export default Axios
